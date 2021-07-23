@@ -27,29 +27,82 @@ file = baseAnimation
 info = baseInfo
 frameCnt = baseFrameCnt
 frames = baseFrames
+runCountdown = True
 
-countList = conn.execute("SELECT COUNT(*) FROM settings")
-for count in countList:
-    rowCount = count[0]
-if rowCount > 0:
-    rowList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
-    for row in rowList:
-        money = row[1]
-        goal = row[2]
-        game_time = row[3]
-        devil_bias = row[4]
-else:
-    money = 1000
-    goal = 10000
-    game_time = 300
-    devil_bias = 50
-name = "Meet"
+
+global name, money, goal, game_time, devil_bias
 
 
 firstiterate = True
 
 
+def start_game():
+    conn = sqlite3.connect("coin_flipper.db")
+    global name, money, goal, game_time, devil_bias
+
+    countList = conn.execute("SELECT COUNT(*) FROM settings")
+    for count in countList:
+        rowCount = count[0]
+    if rowCount > 0:
+        rowList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
+        for row in rowList:
+            money = row[1]
+            goal = row[2]
+            game_time = row[3]
+            devil_bias = row[4]
+    else:
+        money = 1000
+        goal = 10000
+        game_time = 300
+        devil_bias = 50
+
+    leaderboardLabel.place_forget()
+    textMessage.place_forget()
+    devilButton.place_forget()
+    luckyButton.place_forget()
+    entryWidget.place_forget()
+    moneyLabel.place_forget()
+    goalLabel.place_forget()
+    resultLabel.place_forget()
+    playerLabel.place_forget()
+    gameTimeLabel.place_forget()
+
+    nameLabel.place(x=120, y=450)
+    nameInput.place(x=257, y=454)
+    entryButton.place(x=455, y=453)
+
+    entryButton.wait_variable(var)
+
+    name = nameInput.get()
+    nameLabel.place_forget()
+    nameInput.place_forget()
+    entryButton.place_forget()
+
+    moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
+    moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+
+    goalLabel["text"] = goalLabel["text"].split(": ")[0]
+    goalLabel["text"] = goalLabel["text"] + ": " + str(goal)
+
+    playerLabel["text"] = playerLabel["text"].split(": ")[0]
+    playerLabel["text"] = playerLabel["text"] + ": " + str(name)
+
+
+    devilButton.place(x=135, y=450)
+    luckyButton.place(x=430, y=450)
+    entryWidget.place(x=227, y=457)
+    moneyLabel.place(x=455, y=10)
+    goalLabel.place(x=455, y=40)
+    resultLabel.place(x=280, y=400)
+    playerLabel.place(x=10, y=10)
+    gameTimeLabel.place(x=10, y=40)
+
+    threading.Thread(target = countdown).start()
+
+
 def game_over():
+    global runCountdown
+    runCountdown = False
     conn = sqlite3.connect("coin_flipper.db")
     playerLabel.place_forget()
     gameTimeLabel.place_forget()
@@ -59,19 +112,24 @@ def game_over():
     devilButton.place_forget()
     luckyButton.place_forget()
     entryWidget.place_forget()
-    players = conn.execute("SELECT COUNT(*) FROM leaderboard WHERE name = (?)", (name,))
+    players = conn.execute(
+        "SELECT COUNT(*) FROM leaderboard WHERE name = (?)", (name,))
+    settingsList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
+    for setting in settingsList:
+        totalTime = setting[3]
+    timeTaken = totalTime - game_time
     for player in players:
         count = player[0]
     if count == 0:
         conn.execute(
-            "INSERT INTO leaderboard (name, money, goal, game_time, devil_bias) VALUES ((?), (?), (?), (?), (?))", (name, money, goal, game_time, devil_bias,))
+            "INSERT INTO leaderboard (name, money, goal, game_time, devil_bias) VALUES ((?), (?), (?), (?), (?))", (name, money, goal, timeTaken, devil_bias,))
         conn.commit()
     else:
         conn.execute(
-            "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, game_time, devil_bias, "Meet",))
+            "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
         conn.commit()
     allPlayers = conn.execute(
-        "SELECT * FROM leaderboard ORDER BY money DESC")
+        "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
     leaderboardInfo = []
     leaderboardInfo.append("NAME MONEY GOAL TIME BIAS")
     for player in allPlayers:
@@ -80,7 +138,9 @@ def game_over():
         rowGoal = player[3]
         rowGame_time = player[4]
         rowDevil_bias = player[5]
-        allPlayerInfo = rowName + " " + str(rowMoney) + " " + str(rowGoal) + " " + str(rowGame_time) + " " + str(rowDevil_bias)
+        allPlayerInfo = rowName + " " + \
+            str(rowMoney) + " " + str(rowGoal) + " " + \
+            str(rowGame_time) + " " + str(rowDevil_bias)
         leaderboardInfo.append(allPlayerInfo)
     leaderboardLabel.place(x=260, y=60)
     for record in leaderboardInfo:
@@ -89,7 +149,6 @@ def game_over():
         textMessage.place(x=125, y=110)
         textMessage.see("end")
         textMessage.configure(state="disabled")
-
 
 
 def settings():
@@ -146,7 +205,8 @@ def settings():
         game_time = int(inputTime.get())
         devil_bias = int(inputBias.get())
 
-        conn.execute("UPDATE settings SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE id = (?)", (money, goal, game_time, devil_bias, 1))
+        conn.execute("UPDATE settings SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE id = (?)",
+                     (money, goal, game_time, devil_bias, 1))
         conn.commit()
 
     else:
@@ -174,7 +234,6 @@ def settings():
     top.destroy()
 
 
-
 def callback(input):
     if input.isdigit():
         return True
@@ -186,11 +245,24 @@ def callback(input):
 
 def devil():
     try:
+        global firstiterate, after, frames, frameCnt, money, devil_bias
+
         devilButton["state"] = "disabled"
         luckyButton["state"] = "disabled"
         resultLabel["text"] = ""
 
-        global firstiterate, after, frames, frameCnt, money
+        bet = entryWidget.get()
+        moneyUpdate = True
+        if bet.isdigit():
+            bet = int(bet)
+            if bet > money:
+                messagebox.showerror(
+                    "Insufficinet Balance!", "You have insufficient balance to place this bet, try again!")
+                devilButton["state"] = "normal"
+                luckyButton["state"] = "normal"
+                return
+        else:
+            moneyUpdate = False
 
         if not firstiterate:
             root.after_cancel(after)
@@ -207,14 +279,9 @@ def devil():
 
         root.after_cancel(afterfast)
         randomNum = random.random()
-        bet = entryWidget.get()
-        moneyUpdate = True
-        if bet.isdigit():
-            bet = int(bet)
-        else:
-            moneyUpdate = False
 
-        if randomNum > 0.5:
+        tempDevil_bias = devil_bias / 100
+        if randomNum < tempDevil_bias:
             file = "images/devil.gif"
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
@@ -222,7 +289,7 @@ def devil():
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
 
-        if randomNum <= 0.5:
+        if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
@@ -233,25 +300,47 @@ def devil():
         info = Image.open(file)
         frameCnt = info.n_frames
         frames = [PhotoImage(file=file, format='gif -index %i' % (i))
-                for i in range(frameCnt)]
+                  for i in range(frameCnt)]
         update(0, False)
         firstiterate = False
+        if money > goal:
+            messagebox.showinfo("Congratulations!",
+                                "You have reached the goal, congratulations!")
+            game_over()
+        if money <= 0:
+            messagebox.showerror(
+                "Game Over", "You are out of money and hence game is over, try again :( ")
+            game_over()
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
-        
+
     except:
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
-        messagebox.showerror("Toss error occured!", "Error occured while tossing the coin, try again!")
+        messagebox.showerror("Toss error occured!",
+                             "Error occured while tossing the coin, try again!")
 
 
 def lucky():
     try:
+        global firstiterate, after, frames, frameCnt, money, devil_bias
+
         devilButton["state"] = "disabled"
         luckyButton["state"] = "disabled"
         resultLabel["text"] = ""
 
-        global firstiterate, after, frames, frameCnt, money
+        bet = entryWidget.get()
+        moneyUpdate = True
+        if bet.isdigit():
+            bet = int(bet)
+            if bet > money:
+                messagebox.showerror(
+                    "Insufficinet Balance!", "You have insufficient balance to place this bet, try again!")
+                devilButton["state"] = "normal"
+                luckyButton["state"] = "normal"
+                return
+        else:
+            moneyUpdate = False
 
         if not firstiterate:
             root.after_cancel(after)
@@ -272,10 +361,15 @@ def lucky():
         moneyUpdate = True
         if bet.isdigit():
             bet = int(bet)
+            if bet > money:
+                messagebox.showerror(
+                    "Insufficinet Balance!", "You have insufficient balance to place this bet, try again!")
+                return
         else:
             moneyUpdate = False
 
-        if randomNum > 0.5:
+        tempDevil_bias = devil_bias / 100
+        if randomNum < tempDevil_bias:
             file = "images/devil.gif"
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
@@ -283,7 +377,7 @@ def lucky():
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
 
-        if randomNum <= 0.5:
+        if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
@@ -294,9 +388,17 @@ def lucky():
         info = Image.open(file)
         frameCnt = info.n_frames
         frames = [PhotoImage(file=file, format='gif -index %i' % (i))
-                for i in range(frameCnt)]
+                  for i in range(frameCnt)]
         update(0, False)
         firstiterate = False
+        if money > goal:
+            messagebox.showinfo("Congratulations!",
+                                "You have reached the goal, congratulations!")
+            game_over()
+        if money <= 0:
+            messagebox.showerror(
+                "Game Over", "You are out of money and hence game is over, try again :( ")
+            game_over()
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
 
@@ -328,7 +430,7 @@ def update(ind, fastSpin):
 
 
 def countdown():
-    global game_time
+    global game_time, runCountdown
     while game_time:
         mins, secs = divmod(game_time, 60)
         timer = '{:02d}:{:02d}'.format(mins, secs)
@@ -336,8 +438,10 @@ def countdown():
         gameTimeLabel["text"] = gameTimeLabel["text"] + ": " + timer
         time.sleep(1)
         game_time -= 1
-    messagebox.showinfo("Time is Up!", "The game time is over, do check the leaderboard for your score!")
-    # game_over()
+    if runCountdown:
+        messagebox.showinfo(
+            "Time is Up!", "The game time is over, do check the leaderboard for your score!")
+        # game_over()
 
 
 root.geometry("650x520")
@@ -367,13 +471,16 @@ resultLabel = Label(
 entryWidget = Entry(root, bg="goldenrod2", fg="blue", font=("Century", 12))
 reg = root.register(callback)
 entryWidget.config(validate="key",
-             validatecommand=(reg, '%P'))
+                   validatecommand=(reg, '%P'))
 entryButton = Button(root, text="Enter!", command=lambda: var.set(1), font=(
     'Century', 10), cursor='hand2', bg="gold2", fg="orange3")
 leaderboardLabel = Label(
     root, text="LeaderBoard", font=("Century", 15), bg="royalblue3", fg="goldenrod2")
 textMessage = st.ScrolledText(root, height=15.5, width=35, font=(
     "Century", 15), bg="royalblue3", fg="goldenrod2")
+nameLabel = Label(
+    root, text="Enter Name: ", font=("Century", 15), bg="royalblue3", fg="goldenrod2")
+nameInput = Entry(root, bg="goldenrod2", fg="blue", font=("Century", 12))
 
 
 # create menu
@@ -384,17 +491,12 @@ root.config(menu=my_menu)
 options_menu = Menu(my_menu, tearoff=False)
 my_menu.add_cascade(label="Options 🛠", menu=options_menu)
 options_menu.add_command(label="Play/Replay 🎮", command=lambda: threading.Thread(
-    target=game_over).start())
-options_menu.add_command(label="settings ⚙", command = lambda: threading.Thread(
+    target=start_game).start())
+options_menu.add_command(label="settings ⚙", command=lambda: threading.Thread(
     target=settings).start())
 options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
     target=game_over).start())
 
-moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
-moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
-
-goalLabel["text"] = goalLabel["text"].split(": ")[0]
-goalLabel["text"] = goalLabel["text"] + ": " + str(goal)
 
 titleLabel.place(x=245, y=10)
 devilButton.place(x=135, y=450)
@@ -407,5 +509,4 @@ playerLabel.place(x=10, y=10)
 gameTimeLabel.place(x=10, y=40)
 update(0, False)
 root.iconphoto(False, coinFlipIcon)
-threading.Thread(target = countdown).start()
 root.mainloop()
