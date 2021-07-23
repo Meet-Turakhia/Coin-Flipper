@@ -15,7 +15,7 @@ root = tkinter.Tk()
 var = tkinter.IntVar()
 conn = sqlite3.connect("coin_flipper.db")
 conn.execute("CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, money INT DEFAULT 1000 NOT NULL, goal INT DEFAULT 10000 NOT NULL, game_time INT DEFAULT 300 NOT NULL, devil_bias INT DEFAULT 50 NOT NULL, date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
-conn.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) UNIQUE DEFAULT 'Unknown' NOT NULL, money INT NOT NULL, goal INT NOT NULL, game_time INT NOT NULL, devil_bias INT NOT NULL,  date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
+conn.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) UNIQUE NOT NULL, money INT NOT NULL, goal INT NOT NULL, game_time INT NOT NULL, devil_bias INT NOT NULL,  date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
 
 
 baseAnimation = "images/giphy.gif"
@@ -138,6 +138,8 @@ def start_game():
         rootEntryButton.wait_variable(var)
 
         name = nameInput.get()
+        if name == "":
+            name = "Unknown"
         nameLabel.place_forget()
         nameInput.place_forget()
         rootEntryButton.place_forget()
@@ -205,7 +207,10 @@ def game_over():
         settingsList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
         for setting in settingsList:
             totalTime = setting[3]
-        timeTaken = totalTime - game_time
+        try:
+            timeTaken = totalTime - game_time
+        except:
+            timeTaken = 300 - game_time
         for player in players:
             count = player[0]
         if count == 0:
