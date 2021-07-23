@@ -58,6 +58,7 @@ def start_game():
 
     leaderboardLabel.place_forget()
     textMessage.place_forget()
+    startButton.place_forget()
     devilButton.place_forget()
     luckyButton.place_forget()
     entryWidget.place_forget()
@@ -98,6 +99,8 @@ def start_game():
     gameTimeLabel.place(x=10, y=40)
 
     threading.Thread(target = countdown).start()
+    options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
+        target=game_over).start())
 
 
 def game_over():
@@ -454,6 +457,8 @@ coinFlipLabel = Label(root, bg="royalblue3")
 coinFlipLabel.place(x=80, y=0)
 titleLabel = Label(
     root, text="Coin Flipper", font=("Century", 20), bg="royalblue3", fg="goldenrod2")
+startButton = Button(root, text="Start Game!", command=lambda: threading.Thread(
+    target=start_game).start(), font=('Century', 15), cursor='hand2', background="gold2", foreground="orange3")
 devilButton = Button(root, text="Devil!", command=lambda: threading.Thread(
     target=devil).start(), font=('Century', 15), cursor='hand2', background="gold2", foreground="orange3")
 luckyButton = Button(root, text="Lucky!", command=lambda: threading.Thread(
@@ -490,18 +495,17 @@ root.config(menu=my_menu)
 # create options menu
 options_menu = Menu(my_menu, tearoff=False)
 my_menu.add_cascade(label="Options 🛠", menu=options_menu)
-options_menu.add_command(label="Play/Replay 🎮", command=lambda: threading.Thread(
+options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
     target=start_game).start())
 options_menu.add_command(label="settings ⚙", command=lambda: threading.Thread(
     target=settings).start())
-options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
-    target=game_over).start())
 
 
 titleLabel.place(x=245, y=10)
-devilButton.place(x=135, y=450)
-luckyButton.place(x=430, y=450)
-entryWidget.place(x=227, y=457)
+startButton.place(x=250, y=450)
+# devilButton.place(x=135, y=450)
+# luckyButton.place(x=430, y=450)
+# entryWidget.place(x=227, y=457)
 moneyLabel.place(x=455, y=10)
 goalLabel.place(x=455, y=40)
 resultLabel.place(x=280, y=400)
