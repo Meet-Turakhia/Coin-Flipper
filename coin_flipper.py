@@ -39,8 +39,15 @@ firstiterate = True
 
 def start_game():
     try:
+        try:
+            options_menu.entryconfig("Settings ⚙", state="disabled")
+            options_menu.entryconfig("Play/Restart 🎮", state="disabled")
+            options_menu.entryconfig("Quit 🏳", state="disabled")
+        except:
+            pass
+        coinFlipLabel.place(x=80, y=0)
         conn = sqlite3.connect("coin_flipper.db")
-        global name, money, goal, game_time, devil_bias
+        global name, money, goal, game_time, devil_bias, runCountdown
 
         countList = conn.execute("SELECT COUNT(*) FROM settings")
         for count in countList:
@@ -57,6 +64,7 @@ def start_game():
             goal = 10000
             game_time = 300
             devil_bias = 50
+        runCountdown = True
 
         leaderboardLabel.place_forget()
         textMessage.place_forget()
@@ -73,15 +81,15 @@ def start_game():
 
         nameLabel.place(x=120, y=450)
         nameInput.place(x=257, y=454)
-        entryButton.place(x=455, y=453)
+        rootEntryButton.place(x=455, y=453)
         root.update()
 
-        entryButton.wait_variable(var)
+        rootEntryButton.wait_variable(var)
 
         name = nameInput.get()
         nameLabel.place_forget()
         nameInput.place_forget()
-        entryButton.place_forget()
+        rootEntryButton.place_forget()
         root.update()
 
         moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
@@ -104,17 +112,25 @@ def start_game():
         gameTimeLabel.place(x=10, y=40)
         root.update()
 
+        gameTimeLabel["text"] = "Time: "
         threading.Thread(target = countdown).start()
-        options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
-            target=start_game).start())
-        options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
-            target=game_over).start())
+        try:
+            options_menu.entryconfig("Settings ⚙", state="normal")
+            options_menu.entryconfig("Quit 🏳", state="normal")
+        except:
+            pass
     except:
         messagebox.showerror("Game Start/Restart Error!", "There was an error while starting the game")
 
 
 def game_over():
     try:
+        try:
+            options_menu.entryconfig("Quit 🏳", state="disabled")
+            options_menu.entryconfig("Settings ⚙", state="normal")
+            options_menu.entryconfig("Play/Restart 🎮", state="normal")
+        except:
+            pass
         global runCountdown
         runCountdown = False
         conn = sqlite3.connect("coin_flipper.db")
@@ -126,6 +142,11 @@ def game_over():
         devilButton.place_forget()
         luckyButton.place_forget()
         entryWidget.place_forget()
+
+        nameLabel.place_forget()
+        nameInput.place_forget()
+        rootEntryButton.place_forget()
+
         root.update()
 
         players = conn.execute(
@@ -141,9 +162,13 @@ def game_over():
                 "INSERT INTO leaderboard (name, money, goal, game_time, devil_bias) VALUES ((?), (?), (?), (?), (?))", (name, money, goal, timeTaken, devil_bias,))
             conn.commit()
         else:
-            conn.execute(
-                "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
-            conn.commit()
+            historicPlayerInfoList = conn.execute("SELECT * FROM leaderboard WHERE name = (?)", (name,))
+            for historicalPlayerInfo in historicPlayerInfoList:
+                historicMoney = historicalPlayerInfo[2]
+            if historicMoney < money:
+                conn.execute(
+                    "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
+                conn.commit()
         allPlayers = conn.execute(
             "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
         leaderboardInfo = []
@@ -158,6 +183,9 @@ def game_over():
                 str(rowMoney) + " " + str(rowGoal) + " " + \
                 str(rowGame_time) + " " + str(rowDevil_bias)
             leaderboardInfo.append(allPlayerInfo)
+        textMessage["state"] = "normal"
+        textMessage.delete("1.0", "end")
+        textMessage["state"] = "disabled"
         leaderboardLabel.place(x=260, y=60)
         for record in leaderboardInfo:
             textMessage.configure(state="normal")
@@ -332,10 +360,10 @@ def devil():
                   for i in range(frameCnt)]
         update(0, False)
         firstiterate = False
-        if money > goal:
+        if money == goal:
             messagebox.showinfo("Congratulations!",
                                 "You have reached the goal, congratulations!")
-            game_over()
+            # game_over()
         if money <= 0:
             messagebox.showerror(
                 "Game Over", "You are out of money and hence game is over, try again :( ")
@@ -430,10 +458,10 @@ def lucky():
                   for i in range(frameCnt)]
         update(0, False)
         firstiterate = False
-        if money > goal:
+        if money == goal:
             messagebox.showinfo("Congratulations!",
                                 "You have reached the goal, congratulations!")
-            game_over()
+            # game_over()
         if money <= 0:
             messagebox.showerror(
                 "Game Over", "You are out of money and hence game is over, try again :( ")
@@ -484,6 +512,8 @@ def countdown():
             root.update()
             time.sleep(1)
             game_time -= 1
+            if not runCountdown:
+                return
         if runCountdown:
             messagebox.showinfo(
                 "Time is Up!", "The game time is over, do check the leaderboard for your score!")
@@ -522,7 +552,7 @@ entryWidget = Entry(root, bg="goldenrod2", fg="blue", font=("Century", 12))
 reg = root.register(callback)
 entryWidget.config(validate="key",
                    validatecommand=(reg, '%P'))
-entryButton = Button(root, text="Enter!", command=lambda: var.set(1), font=(
+rootEntryButton = Button(root, text="Enter!", command=lambda: var.set(1), font=(
     'Century', 10), cursor='hand2', bg="gold2", fg="orange3")
 leaderboardLabel = Label(
     root, text="LeaderBoard", font=("Century", 15), bg="royalblue3", fg="goldenrod2")
@@ -540,11 +570,19 @@ root.config(menu=my_menu)
 # create options menu
 options_menu = Menu(my_menu, tearoff=False)
 my_menu.add_cascade(label="Options 🛠", menu=options_menu)
-options_menu.add_command(label="settings ⚙", command=lambda: threading.Thread(
+options_menu.add_command(label="Settings ⚙", command=lambda: threading.Thread(
     target=settings).start())
+options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
+            target=start_game).start())
+options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
+            target=game_over).start())
+options_menu.entryconfig("Settings ⚙", state="disabled")
+options_menu.entryconfig("Play/Restart 🎮", state="disabled")
+options_menu.entryconfig("Quit 🏳", state="disabled")
 
 
 titleLabel.place(x=245, y=10)
+meshIconLabel.place(x=590, y=460)
 startButton.place(x=250, y=450)
 # devilButton.place(x=135, y=450)
 # luckyButton.place(x=430, y=450)
