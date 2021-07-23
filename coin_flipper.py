@@ -37,121 +37,129 @@ firstiterate = True
 
 
 def start_game():
-    conn = sqlite3.connect("coin_flipper.db")
-    global name, money, goal, game_time, devil_bias
+    try:
+        conn = sqlite3.connect("coin_flipper.db")
+        global name, money, goal, game_time, devil_bias
 
-    countList = conn.execute("SELECT COUNT(*) FROM settings")
-    for count in countList:
-        rowCount = count[0]
-    if rowCount > 0:
-        rowList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
-        for row in rowList:
-            money = row[1]
-            goal = row[2]
-            game_time = row[3]
-            devil_bias = row[4]
-    else:
-        money = 1000
-        goal = 10000
-        game_time = 300
-        devil_bias = 50
+        countList = conn.execute("SELECT COUNT(*) FROM settings")
+        for count in countList:
+            rowCount = count[0]
+        if rowCount > 0:
+            rowList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
+            for row in rowList:
+                money = row[1]
+                goal = row[2]
+                game_time = row[3]
+                devil_bias = row[4]
+        else:
+            money = 1000
+            goal = 10000
+            game_time = 300
+            devil_bias = 50
 
-    leaderboardLabel.place_forget()
-    textMessage.place_forget()
-    startButton.place_forget()
-    devilButton.place_forget()
-    luckyButton.place_forget()
-    entryWidget.place_forget()
-    moneyLabel.place_forget()
-    goalLabel.place_forget()
-    resultLabel.place_forget()
-    playerLabel.place_forget()
-    gameTimeLabel.place_forget()
+        leaderboardLabel.place_forget()
+        textMessage.place_forget()
+        startButton.place_forget()
+        devilButton.place_forget()
+        luckyButton.place_forget()
+        entryWidget.place_forget()
+        moneyLabel.place_forget()
+        goalLabel.place_forget()
+        resultLabel.place_forget()
+        playerLabel.place_forget()
+        gameTimeLabel.place_forget()
 
-    nameLabel.place(x=120, y=450)
-    nameInput.place(x=257, y=454)
-    entryButton.place(x=455, y=453)
+        nameLabel.place(x=120, y=450)
+        nameInput.place(x=257, y=454)
+        entryButton.place(x=455, y=453)
 
-    entryButton.wait_variable(var)
+        entryButton.wait_variable(var)
 
-    name = nameInput.get()
-    nameLabel.place_forget()
-    nameInput.place_forget()
-    entryButton.place_forget()
+        name = nameInput.get()
+        nameLabel.place_forget()
+        nameInput.place_forget()
+        entryButton.place_forget()
 
-    moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
-    moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+        moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
+        moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
 
-    goalLabel["text"] = goalLabel["text"].split(": ")[0]
-    goalLabel["text"] = goalLabel["text"] + ": " + str(goal)
+        goalLabel["text"] = goalLabel["text"].split(": ")[0]
+        goalLabel["text"] = goalLabel["text"] + ": " + str(goal)
 
-    playerLabel["text"] = playerLabel["text"].split(": ")[0]
-    playerLabel["text"] = playerLabel["text"] + ": " + str(name)
+        playerLabel["text"] = playerLabel["text"].split(": ")[0]
+        playerLabel["text"] = playerLabel["text"] + ": " + str(name)
 
 
-    devilButton.place(x=135, y=450)
-    luckyButton.place(x=430, y=450)
-    entryWidget.place(x=227, y=457)
-    moneyLabel.place(x=455, y=10)
-    goalLabel.place(x=455, y=40)
-    resultLabel.place(x=280, y=400)
-    playerLabel.place(x=10, y=10)
-    gameTimeLabel.place(x=10, y=40)
+        devilButton.place(x=135, y=450)
+        luckyButton.place(x=430, y=450)
+        entryWidget.place(x=227, y=457)
+        moneyLabel.place(x=455, y=10)
+        goalLabel.place(x=455, y=40)
+        resultLabel.place(x=280, y=400)
+        playerLabel.place(x=10, y=10)
+        gameTimeLabel.place(x=10, y=40)
 
-    threading.Thread(target = countdown).start()
-    options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
-        target=game_over).start())
+        threading.Thread(target = countdown).start()
+        options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
+            target=game_over).start())
+        options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
+            target=start_game).start())
+    except:
+        messagebox.showerror("Game Start/Restart Error!", "There was an error while starting the game")
 
 
 def game_over():
-    global runCountdown
-    runCountdown = False
-    conn = sqlite3.connect("coin_flipper.db")
-    playerLabel.place_forget()
-    gameTimeLabel.place_forget()
-    moneyLabel.place_forget()
-    goalLabel.place_forget()
-    coinFlipLabel.place_forget()
-    devilButton.place_forget()
-    luckyButton.place_forget()
-    entryWidget.place_forget()
-    players = conn.execute(
-        "SELECT COUNT(*) FROM leaderboard WHERE name = (?)", (name,))
-    settingsList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
-    for setting in settingsList:
-        totalTime = setting[3]
-    timeTaken = totalTime - game_time
-    for player in players:
-        count = player[0]
-    if count == 0:
-        conn.execute(
-            "INSERT INTO leaderboard (name, money, goal, game_time, devil_bias) VALUES ((?), (?), (?), (?), (?))", (name, money, goal, timeTaken, devil_bias,))
-        conn.commit()
-    else:
-        conn.execute(
-            "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
-        conn.commit()
-    allPlayers = conn.execute(
-        "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
-    leaderboardInfo = []
-    leaderboardInfo.append("NAME MONEY GOAL TIME BIAS")
-    for player in allPlayers:
-        rowName = player[1]
-        rowMoney = player[2]
-        rowGoal = player[3]
-        rowGame_time = player[4]
-        rowDevil_bias = player[5]
-        allPlayerInfo = rowName + " " + \
-            str(rowMoney) + " " + str(rowGoal) + " " + \
-            str(rowGame_time) + " " + str(rowDevil_bias)
-        leaderboardInfo.append(allPlayerInfo)
-    leaderboardLabel.place(x=260, y=60)
-    for record in leaderboardInfo:
-        textMessage.configure(state="normal")
-        textMessage.insert(END, record + "\n")
-        textMessage.place(x=125, y=110)
-        textMessage.see("end")
-        textMessage.configure(state="disabled")
+    try:
+        global runCountdown
+        runCountdown = False
+        conn = sqlite3.connect("coin_flipper.db")
+        playerLabel.place_forget()
+        gameTimeLabel.place_forget()
+        moneyLabel.place_forget()
+        goalLabel.place_forget()
+        coinFlipLabel.place_forget()
+        devilButton.place_forget()
+        luckyButton.place_forget()
+        entryWidget.place_forget()
+        players = conn.execute(
+            "SELECT COUNT(*) FROM leaderboard WHERE name = (?)", (name,))
+        settingsList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
+        for setting in settingsList:
+            totalTime = setting[3]
+        timeTaken = totalTime - game_time
+        for player in players:
+            count = player[0]
+        if count == 0:
+            conn.execute(
+                "INSERT INTO leaderboard (name, money, goal, game_time, devil_bias) VALUES ((?), (?), (?), (?), (?))", (name, money, goal, timeTaken, devil_bias,))
+            conn.commit()
+        else:
+            conn.execute(
+                "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
+            conn.commit()
+        allPlayers = conn.execute(
+            "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
+        leaderboardInfo = []
+        leaderboardInfo.append("NAME MONEY GOAL TIME BIAS")
+        for player in allPlayers:
+            rowName = player[1]
+            rowMoney = player[2]
+            rowGoal = player[3]
+            rowGame_time = player[4]
+            rowDevil_bias = player[5]
+            allPlayerInfo = rowName + " " + \
+                str(rowMoney) + " " + str(rowGoal) + " " + \
+                str(rowGame_time) + " " + str(rowDevil_bias)
+            leaderboardInfo.append(allPlayerInfo)
+        leaderboardLabel.place(x=260, y=60)
+        for record in leaderboardInfo:
+            textMessage.configure(state="normal")
+            textMessage.insert(END, record + "\n")
+            textMessage.place(x=125, y=110)
+            textMessage.see("end")
+            textMessage.configure(state="disabled")
+    except:
+        messagebox.showerror("Game Over Error!", "Could'nt finish and summarise your game, please try again!")
 
 
 def settings():
@@ -413,38 +421,44 @@ def lucky():
 
 
 def update(ind, fastSpin):
-    global after, afterfast
-
-    if ind >= frameCnt:
-        ind = 0
-
     try:
-        frame = frames[ind]
+        global after, afterfast
+
+        if ind >= frameCnt:
+            ind = 0
+
+        try:
+            frame = frames[ind]
+        except:
+            frame = frames[0]
+
+        ind += 1
+        coinFlipLabel.configure(image=frame)
+
+        if fastSpin == False:
+            after = root.after(100, update, ind, fastSpin)
+        else:
+            afterfast = root.after(2, update, ind, fastSpin)
     except:
-        frame = frames[0]
-
-    ind += 1
-    coinFlipLabel.configure(image=frame)
-
-    if fastSpin == False:
-        after = root.after(100, update, ind, fastSpin)
-    else:
-        afterfast = root.after(2, update, ind, fastSpin)
+        messagebox.showerror("Coin Animation Error!", "There was an error while displaying coin animation!")
 
 
 def countdown():
-    global game_time, runCountdown
-    while game_time:
-        mins, secs = divmod(game_time, 60)
-        timer = '{:02d}:{:02d}'.format(mins, secs)
-        gameTimeLabel["text"] = gameTimeLabel["text"].split(": ")[0]
-        gameTimeLabel["text"] = gameTimeLabel["text"] + ": " + timer
-        time.sleep(1)
-        game_time -= 1
-    if runCountdown:
-        messagebox.showinfo(
-            "Time is Up!", "The game time is over, do check the leaderboard for your score!")
-        # game_over()
+    try:
+        global game_time, runCountdown
+        while game_time:
+            mins, secs = divmod(game_time, 60)
+            timer = '{:02d}:{:02d}'.format(mins, secs)
+            gameTimeLabel["text"] = gameTimeLabel["text"].split(": ")[0]
+            gameTimeLabel["text"] = gameTimeLabel["text"] + ": " + timer
+            time.sleep(1)
+            game_time -= 1
+        if runCountdown:
+            messagebox.showinfo(
+                "Time is Up!", "The game time is over, do check the leaderboard for your score!")
+            # game_over()
+    except:
+        messagebox.showerror("Count Down Error!", "There was an error while displaying countdown!")
 
 
 root.geometry("650x520")
@@ -495,8 +509,6 @@ root.config(menu=my_menu)
 # create options menu
 options_menu = Menu(my_menu, tearoff=False)
 my_menu.add_cascade(label="Options 🛠", menu=options_menu)
-options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
-    target=start_game).start())
 options_menu.add_command(label="settings ⚙", command=lambda: threading.Thread(
     target=settings).start())
 
