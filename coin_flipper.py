@@ -413,7 +413,7 @@ def devil():
         firstiterate = False
         if money == goal:
             messagebox.showinfo("Congratulations!",
-                                "You have reached the goal, congratulations!")
+                                "You have completed the goal, congratulations, you can keep on playing but quit from options when done to record your data and see where you stand on leaderboard!")
             # game_over()
         if money <= 0:
             messagebox.showerror(
@@ -510,9 +510,9 @@ def lucky():
         update(0, False)
         firstiterate = False
         if money == goal:
-            messagebox.showinfo("Congratulations!",
-                                "You have reached the goal, congratulations!")
-            # game_over()
+           messagebox.showinfo("Congratulations!",
+                               "You have completed the goal, congratulations, you can keep on playing but quit from options when done to record your data and see where you stand on leaderboard!")
+           # game_over()
         if money <= 0:
             messagebox.showerror(
                 "Game Over", "You are out of money and hence game is over, try again :( ")
@@ -567,7 +567,7 @@ def countdown():
                 return
         if runCountdown:
             messagebox.showinfo(
-                "Time is Up!", "The game time is over, do check the leaderboard for your score!")
+            "Time is Up!", "The game time is over, quit from options when you feel, to record your data and see where you stand on leaderboard!")
             # game_over()
     except:
         messagebox.showerror("Count Down Error!", "There was an error while displaying countdown!")
