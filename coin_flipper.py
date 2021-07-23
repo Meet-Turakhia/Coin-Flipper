@@ -105,10 +105,10 @@ def start_game():
         root.update()
 
         threading.Thread(target = countdown).start()
-        options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
-            target=game_over).start())
         options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
             target=start_game).start())
+        options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
+            target=game_over).start())
     except:
         messagebox.showerror("Game Start/Restart Error!", "There was an error while starting the game")
 
@@ -311,9 +311,8 @@ def devil():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
-                pygame.mixer.init()
-                pygame.mixer.music.load('music/win.wav')
-                pygame.mixer.music.play(0)
+                pygame.mixer.Channel(0).play(
+                    pygame.mixer.Sound('music/win.wav'))
                 root.update()
 
         if randomNum >= tempDevil_bias:
@@ -323,9 +322,8 @@ def devil():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
-                pygame.mixer.init()
-                pygame.mixer.music.load('music/lose.wav')
-                pygame.mixer.music.play(0)
+                pygame.mixer.Channel(0).play(
+                    pygame.mixer.Sound('music/lose.wav'))
                 root.update()
 
         info = Image.open(file)
@@ -411,9 +409,8 @@ def lucky():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
-                pygame.mixer.init()
-                pygame.mixer.music.load('music/lose.wav')
-                pygame.mixer.music.play(0)
+                pygame.mixer.Channel(0).play(
+                    pygame.mixer.Sound('music/lose.wav'))
                 root.update()
 
         if randomNum >= tempDevil_bias:
@@ -423,9 +420,8 @@ def lucky():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
-                pygame.mixer.init()
-                pygame.mixer.music.load('music/win.wav')
-                pygame.mixer.music.play(0)
+                pygame.mixer.Channel(0).play(
+                    pygame.mixer.Sound('music/win.wav'))
                 root.update()
 
         info = Image.open(file)
