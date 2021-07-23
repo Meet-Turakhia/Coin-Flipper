@@ -390,6 +390,11 @@ def devil():
         tempDevil_bias = devil_bias / 100
         if randomNum < tempDevil_bias:
             file = "images/devil.gif"
+            info = Image.open(file)
+            frameCnt = info.n_frames
+            frames = [PhotoImage(file=file, format='gif -index %i' % (i))
+                    for i in range(frameCnt)]
+            update(0, False)
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
                 money = money + bet
@@ -401,6 +406,11 @@ def devil():
 
         if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
+            info = Image.open(file)
+            frameCnt = info.n_frames
+            frames = [PhotoImage(file=file, format='gif -index %i' % (i))
+                    for i in range(frameCnt)]
+            update(0, False)
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
                 money = money - bet
@@ -410,11 +420,6 @@ def devil():
                     pygame.mixer.Sound('music/lose.wav'))
                 root.update()
 
-        info = Image.open(file)
-        frameCnt = info.n_frames
-        frames = [PhotoImage(file=file, format='gif -index %i' % (i))
-                  for i in range(frameCnt)]
-        update(0, False)
         firstiterate = False
         if money == goal:
             messagebox.showinfo("Congratulations!",
@@ -488,6 +493,11 @@ def lucky():
         tempDevil_bias = devil_bias / 100
         if randomNum < tempDevil_bias:
             file = "images/devil.gif"
+            info = Image.open(file)
+            frameCnt = info.n_frames
+            frames = [PhotoImage(file=file, format='gif -index %i' % (i))
+                    for i in range(frameCnt)]
+            update(0, False)
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
                 money = money - bet
@@ -499,6 +509,11 @@ def lucky():
 
         if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
+            info = Image.open(file)
+            frameCnt = info.n_frames
+            frames = [PhotoImage(file=file, format='gif -index %i' % (i))
+                    for i in range(frameCnt)]
+            update(0, False)
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
                 money = money + bet
