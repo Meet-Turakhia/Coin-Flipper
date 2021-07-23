@@ -68,10 +68,12 @@ def start_game():
         resultLabel.place_forget()
         playerLabel.place_forget()
         gameTimeLabel.place_forget()
+        root.update()
 
         nameLabel.place(x=120, y=450)
         nameInput.place(x=257, y=454)
         entryButton.place(x=455, y=453)
+        root.update()
 
         entryButton.wait_variable(var)
 
@@ -79,6 +81,7 @@ def start_game():
         nameLabel.place_forget()
         nameInput.place_forget()
         entryButton.place_forget()
+        root.update()
 
         moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
         moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
@@ -98,6 +101,7 @@ def start_game():
         resultLabel.place(x=280, y=400)
         playerLabel.place(x=10, y=10)
         gameTimeLabel.place(x=10, y=40)
+        root.update()
 
         threading.Thread(target = countdown).start()
         options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
@@ -121,6 +125,8 @@ def game_over():
         devilButton.place_forget()
         luckyButton.place_forget()
         entryWidget.place_forget()
+        root.update()
+
         players = conn.execute(
             "SELECT COUNT(*) FROM leaderboard WHERE name = (?)", (name,))
         settingsList = conn.execute("SELECT * FROM settings WHERE id = (?)", (1,))
@@ -158,6 +164,7 @@ def game_over():
             textMessage.place(x=125, y=110)
             textMessage.see("end")
             textMessage.configure(state="disabled")
+            root.update()
     except:
         messagebox.showerror("Game Over Error!", "Could'nt finish and summarise your game, please try again!")
 
@@ -208,6 +215,7 @@ def settings():
         inputBiasLabel.place(x=125, y=320)
         inputBias.place(x=160, y=370)
         entryButton.place(x=220, y=440)
+        root.update()
 
         entryButton.wait_variable(var)
 
@@ -230,6 +238,7 @@ def settings():
         inputBiasLabel.place(x=125, y=320)
         inputBias.place(x=160, y=370)
         entryButton.place(x=220, y=440)
+        root.update()
 
         entryButton.wait_variable(var)
 
@@ -261,6 +270,7 @@ def devil():
         devilButton["state"] = "disabled"
         luckyButton["state"] = "disabled"
         resultLabel["text"] = ""
+        root.update()
 
         bet = entryWidget.get()
         moneyUpdate = True
@@ -271,6 +281,7 @@ def devil():
                     "Insufficinet Balance!", "You have insufficient balance to place this bet, try again!")
                 devilButton["state"] = "normal"
                 luckyButton["state"] = "normal"
+                root.update()
                 return
         else:
             moneyUpdate = False
@@ -299,6 +310,7 @@ def devil():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                root.update()
 
         if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
@@ -307,6 +319,7 @@ def devil():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                root.update()
 
         info = Image.open(file)
         frameCnt = info.n_frames
@@ -324,10 +337,12 @@ def devil():
             game_over()
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
+        root.update()
 
     except:
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
+        root.update()
         messagebox.showerror("Toss error occured!",
                              "Error occured while tossing the coin, try again!")
 
@@ -339,6 +354,7 @@ def lucky():
         devilButton["state"] = "disabled"
         luckyButton["state"] = "disabled"
         resultLabel["text"] = ""
+        root.update()
 
         bet = entryWidget.get()
         moneyUpdate = True
@@ -349,6 +365,7 @@ def lucky():
                     "Insufficinet Balance!", "You have insufficient balance to place this bet, try again!")
                 devilButton["state"] = "normal"
                 luckyButton["state"] = "normal"
+                root.update()
                 return
         else:
             moneyUpdate = False
@@ -387,6 +404,7 @@ def lucky():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                root.update()
 
         if randomNum >= tempDevil_bias:
             file = "images/lucky.gif"
@@ -395,6 +413,7 @@ def lucky():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                root.update()
 
         info = Image.open(file)
         frameCnt = info.n_frames
@@ -412,10 +431,12 @@ def lucky():
             game_over()
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
+        root.update()
 
     except:
         devilButton["state"] = "normal"
         luckyButton["state"] = "normal"
+        root.update()
         messagebox.showerror("Toss error occured!",
                              "Error occured while tossing the coin, try again!")
 
@@ -451,6 +472,7 @@ def countdown():
             timer = '{:02d}:{:02d}'.format(mins, secs)
             gameTimeLabel["text"] = gameTimeLabel["text"].split(": ")[0]
             gameTimeLabel["text"] = gameTimeLabel["text"] + ": " + timer
+            root.update()
             time.sleep(1)
             game_time -= 1
         if runCountdown:
