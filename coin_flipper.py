@@ -8,6 +8,7 @@ import random
 from time import strftime
 import sqlite3
 from tkinter import scrolledtext as st
+import pygame
 
 
 root = tkinter.Tk()
@@ -310,6 +311,9 @@ def devil():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                pygame.mixer.init()
+                pygame.mixer.music.load('music/win.wav')
+                pygame.mixer.music.play(0)
                 root.update()
 
         if randomNum >= tempDevil_bias:
@@ -319,6 +323,9 @@ def devil():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                pygame.mixer.init()
+                pygame.mixer.music.load('music/lose.wav')
+                pygame.mixer.music.play(0)
                 root.update()
 
         info = Image.open(file)
@@ -404,6 +411,9 @@ def lucky():
                 money = money - bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                pygame.mixer.init()
+                pygame.mixer.music.load('music/lose.wav')
+                pygame.mixer.music.play(0)
                 root.update()
 
         if randomNum >= tempDevil_bias:
@@ -413,6 +423,9 @@ def lucky():
                 money = money + bet
                 moneyLabel["text"] = moneyLabel["text"].split(": ")[0]
                 moneyLabel["text"] = moneyLabel["text"] + ": " + str(money)
+                pygame.mixer.init()
+                pygame.mixer.music.load('music/win.wav')
+                pygame.mixer.music.play(0)
                 root.update()
 
         info = Image.open(file)
@@ -547,4 +560,9 @@ playerLabel.place(x=10, y=10)
 gameTimeLabel.place(x=10, y=40)
 update(0, False)
 root.iconphoto(False, coinFlipIcon)
+
+pygame.mixer.init()
+pygame.mixer.music.load('music/background.mp3')
+pygame.mixer.music.play(-1)
+
 root.mainloop()
