@@ -15,7 +15,7 @@ root = tkinter.Tk()
 var = tkinter.IntVar()
 conn = sqlite3.connect("coin_flipper.db")
 conn.execute("CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, money INT DEFAULT 1000 NOT NULL, goal INT DEFAULT 10000 NOT NULL, game_time INT DEFAULT 300 NOT NULL, devil_bias INT DEFAULT 50 NOT NULL, date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
-conn.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) UNIQUE NOT NULL, money INT NOT NULL, goal INT NOT NULL, game_time INT NOT NULL, devil_bias INT NOT NULL,  date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
+conn.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) UNIQUE DEFAULT 'Unknown' NOT NULL, money INT NOT NULL, goal INT NOT NULL, game_time INT NOT NULL, devil_bias INT NOT NULL,  date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);")
 
 
 baseAnimation = "images/giphy.gif"
@@ -35,6 +35,57 @@ global name, money, goal, game_time, devil_bias
 
 
 firstiterate = True
+
+
+def show_leaderboard():
+    conn = sqlite3.connect("coin_flipper.db")
+    top2 = Toplevel(root)
+    top2.geometry("500x500")
+    top2.title("LeaderBoard 🥇")
+    top2.configure(background="royalblue3")
+    top2.iconphoto(False, coinFlipIcon)
+
+    top2LeaderboardLabel = Label(
+        top2, text="LeaderBoard", font=("Century", 15), bg="royalblue3", fg="goldenrod2")
+    top2TextMessage = st.ScrolledText(top2, height=15.5, width=35, font=(
+        "Century", 15), bg="royalblue3", fg="goldenrod2")
+
+    allPlayers = conn.execute(
+        "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
+    leaderboardInfo = []
+    leaderboardInfo.append("NAME MONEY GOAL TIME BIAS")
+    for player in allPlayers:
+        rowName = player[1]
+        rowMoney = player[2]
+        rowGoal = player[3]
+        rowGame_time = player[4]
+        rowDevil_bias = player[5]
+        allPlayerInfo = rowName + " " + \
+            str(rowMoney) + " " + str(rowGoal) + " " + \
+            str(rowGame_time) + " " + str(rowDevil_bias)
+        leaderboardInfo.append(allPlayerInfo)
+    top2TextMessage["state"] = "normal"
+    top2TextMessage.delete("1.0", "end")
+    top2TextMessage["state"] = "disabled"
+    top2LeaderboardLabel.place(x=200, y=25)
+    for record in leaderboardInfo:
+        top2TextMessage.configure(state="normal")
+        top2TextMessage.insert(END, record + "\n")
+        top2TextMessage.place(x=47, y=85)
+        top2TextMessage.see("end")
+        top2TextMessage.configure(state="disabled")
+        root.update()
+
+
+def clear_leaderboard():
+    try:
+        conn = sqlite3.connect("coin_flipper.db")
+        confirm = messagebox.askyesno("Delete All Leaderboard Records", "Are you sure you want to delete all leaderboard records permanently?")
+        if confirm:
+            conn.execute("DELETE FROM leaderboard")
+            conn.commit()
+    except:
+        messagebox.showerror("Clear LeaderBoard Error!", "There was an error while clearing the leaderboard try again!")
 
 
 def start_game():
@@ -570,10 +621,14 @@ root.config(menu=my_menu)
 # create options menu
 options_menu = Menu(my_menu, tearoff=False)
 my_menu.add_cascade(label="Options 🛠", menu=options_menu)
+options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
+    target=start_game).start())
 options_menu.add_command(label="Settings ⚙", command=lambda: threading.Thread(
     target=settings).start())
-options_menu.add_command(label="Play/Restart 🎮", command=lambda: threading.Thread(
-            target=start_game).start())
+options_menu.add_command(label="Show LeaderBoard 🥇", command=lambda: threading.Thread(
+    target=show_leaderboard).start())
+options_menu.add_command(label="Clear LeaderBoard‼", command=lambda: threading.Thread(
+    target=clear_leaderboard).start())
 options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
             target=game_over).start())
 options_menu.entryconfig("Settings ⚙", state="disabled")
