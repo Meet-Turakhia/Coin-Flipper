@@ -9,6 +9,7 @@ from time import strftime
 import sqlite3
 from tkinter import scrolledtext as st
 import pygame
+import os
 
 
 root = tkinter.Tk()
@@ -35,6 +36,10 @@ global name, money, goal, game_time, devil_bias
 
 
 firstiterate = True
+
+
+def exit_game():
+    os._exit(0)
 
 
 def show_leaderboard():
@@ -656,6 +661,8 @@ options_menu.add_command(label="Clear LeaderBoard‼", command=lambda: threading
     target=clear_leaderboard).start())
 options_menu.add_command(label="Quit 🏳", command=lambda: threading.Thread(
             target=game_over).start())
+options_menu.add_command(label="Exit Game ➡", command=lambda: threading.Thread(
+    target=exit_game).start())
 options_menu.entryconfig("Settings ⚙", state="disabled")
 options_menu.entryconfig("Play/Restart 🎮", state="disabled")
 options_menu.entryconfig("Quit 🏳", state="disabled")
