@@ -122,6 +122,9 @@ def start_game():
             devil_bias = 50
         runCountdown = True
 
+        nameInput.delete(0, 'end')
+        entryWidget.delete(0, 'end')
+        resultLabel["text"] = ""
         leaderboardLabel.place_forget()
         textMessage.place_forget()
         startButton.place_forget()
@@ -228,7 +231,7 @@ def game_over():
                 historicMoney = historicalPlayerInfo[2]
             if historicMoney < money:
                 conn.execute(
-                    "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, "Meet",))
+                    "UPDATE leaderboard SET money = (?), goal = (?), game_time = (?), devil_bias = (?) WHERE name = (?)", (money, goal, timeTaken, devil_bias, name,))
                 conn.commit()
         allPlayers = conn.execute(
             "SELECT * FROM leaderboard ORDER BY money DESC, game_time ASC")
