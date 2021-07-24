@@ -377,9 +377,9 @@ def devil():
             info = baseInfo
             frameCnt = baseFrameCnt
             frames = baseFrames
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
         root.after_cancel(after)
-        update(0, True)
+        threading.Thread(target = update(0, True)).start()
         time.sleep(3)
 
         global afterfast
@@ -394,7 +394,7 @@ def devil():
             frameCnt = info.n_frames
             frames = [PhotoImage(file=file, format='gif -index %i' % (i))
                     for i in range(frameCnt)]
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
                 money = money + bet
@@ -410,7 +410,7 @@ def devil():
             frameCnt = info.n_frames
             frames = [PhotoImage(file=file, format='gif -index %i' % (i))
                     for i in range(frameCnt)]
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
                 money = money - bet
@@ -470,9 +470,9 @@ def lucky():
             info = baseInfo
             frameCnt = baseFrameCnt
             frames = baseFrames
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
         root.after_cancel(after)
-        update(0, True)
+        threading.Thread(target = update(0, True)).start()
         time.sleep(3)
 
         global afterfast
@@ -497,7 +497,7 @@ def lucky():
             frameCnt = info.n_frames
             frames = [PhotoImage(file=file, format='gif -index %i' % (i))
                     for i in range(frameCnt)]
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
             resultLabel["text"] = "You Lose!"
             if moneyUpdate:
                 money = money - bet
@@ -513,7 +513,7 @@ def lucky():
             frameCnt = info.n_frames
             frames = [PhotoImage(file=file, format='gif -index %i' % (i))
                     for i in range(frameCnt)]
-            update(0, False)
+            threading.Thread(target = update(0, False)).start()
             resultLabel["text"] = "You Won!"
             if moneyUpdate:
                 money = money + bet
@@ -527,7 +527,7 @@ def lucky():
         frameCnt = info.n_frames
         frames = [PhotoImage(file=file, format='gif -index %i' % (i))
                   for i in range(frameCnt)]
-        update(0, False)
+        threading.Thread(target = update(0, False)).start()
         firstiterate = False
         if money == goal:
            messagebox.showinfo("Congratulations!",
@@ -564,6 +564,9 @@ def update(ind, fastSpin):
         ind += 1
         coinFlipLabel.configure(image=frame)
 
+        if frameCnt == 1:
+            return
+
         if fastSpin == False:
             after = root.after(100, update, ind, fastSpin)
         else:
@@ -585,6 +588,8 @@ def countdown():
             game_time -= 1
             if not runCountdown:
                 return
+        gameTimeLabel["text"] = gameTimeLabel["text"].split(": ")[0]
+        gameTimeLabel["text"] = gameTimeLabel["text"] + ": 00:00" 
         if runCountdown:
             messagebox.showinfo(
             "Time is Up!", "The game time is over, quit from options when you feel, to record your data and see where you stand on leaderboard!")
@@ -667,7 +672,7 @@ goalLabel.place(x=455, y=40)
 resultLabel.place(x=280, y=400)
 playerLabel.place(x=10, y=10)
 gameTimeLabel.place(x=10, y=40)
-update(0, False)
+threading.Thread(target = update(0, False)).start()
 root.iconphoto(False, coinFlipIcon)
 
 pygame.mixer.init()
